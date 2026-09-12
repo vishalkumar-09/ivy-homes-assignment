@@ -598,7 +598,7 @@ async function loadListingDetailView(listingId) {
 }
 
 // ════════════════════════════════════════════════════════
-//  3. RENTALS VIEW
+//  3. RENTALS VIEW  (with filters)
 // ════════════════════════════════════════════════════════
 async function loadRentalsView() {
   const container = document.getElementById('view-container');
@@ -608,17 +608,99 @@ async function loadRentalsView() {
       <h1 class="hero-title">Rental Homes in Bangalore</h1>
       <p class="hero-subtitle">Monthly rentals with verified deposit amounts, maintenance transparency, and authentic landlord details.</p>
     </div>
-    <div id="rentals-grid" class="property-grid">${skeletonCards(12)}</div>`;
+
+    <div class="glass-card filter-bar">
+      <div class="filter-group">
+        <label class="filter-label">📍 Locality</label>
+        <select id="r-filter-locality" onchange="onRentalsFilterChange()">
+          <option value="">All Localities</option>
+          <option value="whitefield">Whitefield</option>
+          <option value="koramangala">Koramangala</option>
+          <option value="indiranagar">Indiranagar</option>
+          <option value="hsr layout">HSR Layout</option>
+          <option value="bellandur">Bellandur</option>
+          <option value="electronic city">Electronic City</option>
+          <option value="jp nagar">JP Nagar</option>
+          <option value="hebbal">Hebbal</option>
+          <option value="yelahanka">Yelahanka</option>
+          <option value="sarjapur road">Sarjapur Road</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">🛏 Bedrooms</label>
+        <select id="r-filter-bhk" onchange="onRentalsFilterChange()">
+          <option value="">Any BHK</option>
+          <option value="1">1 BHK</option>
+          <option value="2">2 BHK</option>
+          <option value="3">3 BHK</option>
+          <option value="4">4 BHK</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">🛋 Furnishing</label>
+        <select id="r-filter-furnishing" onchange="onRentalsFilterChange()">
+          <option value="">Any</option>
+          <option value="unfurnished">Unfurnished</option>
+          <option value="semi-furnished">Semi-Furnished</option>
+          <option value="fully-furnished">Fully Furnished</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">↕ Sort</label>
+        <select id="r-filter-sort" onchange="onRentalsSortChange()">
+          <option value="price:asc">Rent: Low → High</option>
+          <option value="price:desc">Rent: High → Low</option>
+          <option value="carpet_area:desc">Largest Area</option>
+          <option value="posted_at:desc">Latest First</option>
+        </select>
+      </div>
+      <div class="filter-group" style="flex:0;min-width:auto;">
+        <label class="filter-label" style="visibility:hidden;">Reset</label>
+        <button class="btn btn-ghost btn-sm" id="r-reset-btn" onclick="resetRentalsFilters()" style="border:1px solid var(--border-color);white-space:nowrap;">✕ Reset</button>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <span id="rentals-count-label" style="color:var(--text-muted);font-size:0.9rem;">Loading rentals…</span>
+      <span class="chip indigo">🔑 Monthly Rent</span>
+    </div>
+
+    <div id="rentals-grid" class="property-grid">${skeletonCards(12)}</div>
+    <div id="rentals-pagination" class="pagination-controls"></div>`;
+
+  // Restore saved filter values
+  if (state.rentalsFilter.locality)   document.getElementById('r-filter-locality').value   = state.rentalsFilter.locality;
+  if (state.rentalsFilter.bhk)        document.getElementById('r-filter-bhk').value         = state.rentalsFilter.bhk;
+  if (state.rentalsFilter.furnishing) document.getElementById('r-filter-furnishing').value  = state.rentalsFilter.furnishing;
+  updateRentalsResetBtn();
+
+  await fetchAndRenderRentals();
+}
+
+async function fetchAndRenderRentals() {
+  const f = state.rentalsFilter;
+  const q = new URLSearchParams();
+  if (f.locality)   q.append('locality',   f.locality);
+  if (f.bhk)        q.append('bhk',        f.bhk);
+  if (f.furnishing) q.append('furnishing', f.furnishing);
+  q.append('sort_by', f.sort_by);
+  q.append('order',   f.order);
+  q.append('offset',  f.offset);
+  q.append('limit',   f.limit);
 
   try {
-    const res  = await apiFetch('/api/rentals?limit=48');
+    const res  = await apiFetch(`/api/rentals?${q}`);
     if (!res || !res.ok) return;
     const data = await res.json();
+
+    const label = document.getElementById('rentals-count-label');
+    if (label) label.innerHTML = `Showing <strong style="color:var(--text-primary)">${data.results.length}</strong> of <strong style="color:var(--indigo)">${data.total.toLocaleString()}</strong> rental properties`;
+
     const grid = document.getElementById('rentals-grid');
     if (!grid) return;
 
     if (!data.results.length) {
-      grid.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🏠</div><div class="empty-state-title">No rentals found.</div></div>`;
+      grid.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🏠</div><div class="empty-state-title">No rentals match your filters.</div><button class="btn btn-secondary" style="margin-top:16px;" onclick="resetRentalsFilters()">Clear Filters</button></div>`;
       return;
     }
 
@@ -655,12 +737,62 @@ async function loadRentalsView() {
           </div>
         </div>`;
     }).join('');
-  } catch (e) { console.error('loadRentals:', e); }
+
+    renderPaginationIn('rentals-pagination', data.total, f.offset, f.limit, 'onRentalsPageChange');
+  } catch (e) { console.error('fetchRentals:', e); }
+}
+
+function onRentalsFilterChange() {
+  state.rentalsFilter.locality   = document.getElementById('r-filter-locality').value;
+  state.rentalsFilter.bhk        = document.getElementById('r-filter-bhk').value;
+  state.rentalsFilter.furnishing = document.getElementById('r-filter-furnishing').value;
+  state.rentalsFilter.offset = 0;
+  updateRentalsResetBtn();
+  fetchAndRenderRentals();
+}
+
+function onRentalsSortChange() {
+  const [sort_by, order] = document.getElementById('r-filter-sort').value.split(':');
+  state.rentalsFilter.sort_by = sort_by;
+  state.rentalsFilter.order   = order;
+  state.rentalsFilter.offset  = 0;
+  fetchAndRenderRentals();
+}
+
+function resetRentalsFilters() {
+  const f = state.rentalsFilter;
+  f.locality = ''; f.bhk = ''; f.furnishing = ''; f.offset = 0;
+  ['r-filter-locality','r-filter-bhk','r-filter-furnishing'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  updateRentalsResetBtn();
+  fetchAndRenderRentals();
+}
+
+function updateRentalsResetBtn() {
+  const btn = document.getElementById('r-reset-btn');
+  if (!btn) return;
+  const f = state.rentalsFilter;
+  const active = [f.locality, f.bhk, f.furnishing].filter(Boolean).length;
+  btn.innerHTML = active ? `✕ Reset <span style="background:var(--indigo);color:#fff;border-radius:99px;padding:1px 6px;font-size:0.7rem;font-weight:800;margin-left:4px;">${active}</span>` : '✕ Reset';
+  btn.style.color = active ? 'var(--indigo)' : '';
+  btn.style.borderColor = active ? 'rgba(129,140,248,0.4)' : '';
+}
+
+function onRentalsPageChange(newOffset) {
+  state.rentalsFilter.offset = newOffset;
+  fetchAndRenderRentals();
+  window.scrollTo({ top: 280, behavior: 'smooth' });
 }
 
 // ════════════════════════════════════════════════════════
-//  4. PROJECTS VIEW
+//  4. PROJECTS VIEW  (with filters)
 // ════════════════════════════════════════════════════════
+const PROJ_GRADIENTS = [
+  'linear-gradient(135deg,#0f1a2a,#1a2a4a)',
+  'linear-gradient(135deg,#1a0f2a,#2a1a4a)',
+  'linear-gradient(135deg,#0f2a1a,#1a4a2a)',
+  'linear-gradient(135deg,#2a1a0f,#4a2a1a)',
+];
+
 async function loadProjectsView() {
   const container = document.getElementById('view-container');
   container.innerHTML = `
@@ -669,28 +801,97 @@ async function loadProjectsView() {
       <h1 class="hero-title">Residential Developments</h1>
       <p class="hero-subtitle">Top builder projects in Bangalore with corrected Crore pricing, RERA registration, and verified listing counts.</p>
     </div>
-    <div id="projects-grid" class="property-grid">${skeletonCards(12)}</div>`;
+
+    <div class="glass-card filter-bar">
+      <div class="filter-group">
+        <label class="filter-label">📍 Locality</label>
+        <select id="p-filter-locality" onchange="onProjectsFilterChange()">
+          <option value="">All Localities</option>
+          <option value="whitefield">Whitefield</option>
+          <option value="koramangala">Koramangala</option>
+          <option value="indiranagar">Indiranagar</option>
+          <option value="hsr layout">HSR Layout</option>
+          <option value="bellandur">Bellandur</option>
+          <option value="electronic city">Electronic City</option>
+          <option value="jp nagar">JP Nagar</option>
+          <option value="hebbal">Hebbal</option>
+          <option value="yelahanka">Yelahanka</option>
+          <option value="sarjapur road">Sarjapur Road</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">🏗 Status</label>
+        <select id="p-filter-status" onchange="onProjectsFilterChange()">
+          <option value="">All Statuses</option>
+          <option value="under construction">Under Construction</option>
+          <option value="completed">Completed</option>
+          <option value="pre-launch">Pre-Launch</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">↕ Sort</label>
+        <select id="p-filter-sort" onchange="onProjectsSortChange()">
+          <option value="price_max:desc">Price: High → Low</option>
+          <option value="price_max:asc">Price: Low → High</option>
+          <option value="total_units:desc">Most Units</option>
+          <option value="launch_date:desc">Newest Launch</option>
+        </select>
+      </div>
+      <div class="filter-group" style="flex:0;min-width:auto;">
+        <label class="filter-label" style="visibility:hidden;">Reset</label>
+        <button class="btn btn-ghost btn-sm" id="p-reset-btn" onclick="resetProjectsFilters()" style="border:1px solid var(--border-color);white-space:nowrap;">✕ Reset</button>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <span id="projects-count-label" style="color:var(--text-muted);font-size:0.9rem;">Loading projects…</span>
+      <div style="display:flex;gap:8px;">
+        <span class="chip" style="background:var(--violet-dim);color:var(--violet);border-color:rgba(167,139,250,0.2);">💡 Prices in Crores (corrected)</span>
+        <span class="chip yellow">⚠️ Count mismatch = wrong in API</span>
+      </div>
+    </div>
+
+    <div id="projects-grid" class="property-grid">${skeletonCards(12)}</div>
+    <div id="projects-pagination" class="pagination-controls"></div>`;
+
+  if (state.projectsFilter.locality)       document.getElementById('p-filter-locality').value = state.projectsFilter.locality;
+  if (state.projectsFilter.project_status) document.getElementById('p-filter-status').value   = state.projectsFilter.project_status;
+  updateProjectsResetBtn();
+
+  await fetchAndRenderProjects();
+}
+
+async function fetchAndRenderProjects() {
+  const f = state.projectsFilter;
+  const q = new URLSearchParams();
+  if (f.locality)       q.append('locality',       f.locality);
+  if (f.project_status) q.append('project_status', f.project_status);
+  q.append('sort_by', f.sort_by);
+  q.append('order',   f.order);
+  q.append('offset',  f.offset);
+  q.append('limit',   f.limit);
 
   try {
-    const res  = await apiFetch('/api/projects?limit=48');
+    const res  = await apiFetch(`/api/projects?${q}`);
     if (!res || !res.ok) return;
     const data = await res.json();
+
+    const label = document.getElementById('projects-count-label');
+    if (label) label.innerHTML = `Showing <strong style="color:var(--text-primary)">${data.results.length}</strong> of <strong style="color:var(--violet)">${data.total.toLocaleString()}</strong> builder projects`;
+
     const grid = document.getElementById('projects-grid');
     if (!grid) return;
 
-    const PROJ_GRADIENTS = [
-      'linear-gradient(135deg,#0f1a2a,#1a2a4a)',
-      'linear-gradient(135deg,#1a0f2a,#2a1a4a)',
-      'linear-gradient(135deg,#0f2a1a,#1a4a2a)',
-      'linear-gradient(135deg,#2a1a0f,#4a2a1a)',
-    ];
+    if (!data.results.length) {
+      grid.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🏗️</div><div class="empty-state-title">No projects match your filters.</div><button class="btn btn-secondary" style="margin-top:16px;" onclick="resetProjectsFilters()">Clear Filters</button></div>`;
+      return;
+    }
 
     grid.innerHTML = data.results.map((p, i) => {
-      const statusColor = p.project_status === 'completed' ? 'var(--success)' :
+      const statusColor = p.project_status === 'completed'          ? 'var(--success)' :
                           p.project_status === 'under construction' ? 'var(--warning)' : 'var(--indigo)';
       const countMatch = p.actual_total_listings === p.total_listings;
-      const locColor = LOCALITY_COLORS[(p.locality || '').toLowerCase()] || 'var(--violet)';
-
+      const locColor   = LOCALITY_COLORS[(p.locality || '').toLowerCase()] || 'var(--violet)';
       return `
         <div class="glass-card project-card fade-in">
           <div class="project-hero" style="background:${PROJ_GRADIENTS[i%4]}">
@@ -712,14 +913,56 @@ async function loadProjectsView() {
             <div class="card-specs">
               <span class="spec-item">🏢 ${p.total_units||0} Units</span>
               <span class="spec-item">🗼 ${p.total_towers||0} Towers</span>
-              <span class="spec-item ${countMatch ? '' : 'text-warning'}" title="${countMatch ? 'Listing count matches' : '⚠️ Listed count disagrees with actual'}">
-                ${countMatch ? '✓' : '⚠️'} ${p.actual_total_listings} actual
+              <span class="spec-item ${countMatch ? '' : 'text-warning'}" title="${countMatch ? 'Count verified' : '⚠️ count disagrees with API'}">
+                ${countMatch ? '✓' : '⚠️'} ${p.actual_total_listings} listings
               </span>
             </div>
           </div>
         </div>`;
     }).join('');
-  } catch (e) { console.error('loadProjects:', e); }
+
+    renderPaginationIn('projects-pagination', data.total, f.offset, f.limit, 'onProjectsPageChange');
+  } catch (e) { console.error('fetchProjects:', e); }
+}
+
+function onProjectsFilterChange() {
+  state.projectsFilter.locality       = document.getElementById('p-filter-locality').value;
+  state.projectsFilter.project_status = document.getElementById('p-filter-status').value;
+  state.projectsFilter.offset = 0;
+  updateProjectsResetBtn();
+  fetchAndRenderProjects();
+}
+
+function onProjectsSortChange() {
+  const [sort_by, order] = document.getElementById('p-filter-sort').value.split(':');
+  state.projectsFilter.sort_by = sort_by;
+  state.projectsFilter.order   = order;
+  state.projectsFilter.offset  = 0;
+  fetchAndRenderProjects();
+}
+
+function resetProjectsFilters() {
+  const f = state.projectsFilter;
+  f.locality = ''; f.project_status = ''; f.offset = 0;
+  ['p-filter-locality','p-filter-status'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  updateProjectsResetBtn();
+  fetchAndRenderProjects();
+}
+
+function updateProjectsResetBtn() {
+  const btn = document.getElementById('p-reset-btn');
+  if (!btn) return;
+  const f = state.projectsFilter;
+  const active = [f.locality, f.project_status].filter(Boolean).length;
+  btn.innerHTML = active ? `✕ Reset <span style="background:var(--violet);color:#fff;border-radius:99px;padding:1px 6px;font-size:0.7rem;font-weight:800;margin-left:4px;">${active}</span>` : '✕ Reset';
+  btn.style.color = active ? 'var(--violet)' : '';
+  btn.style.borderColor = active ? 'rgba(167,139,250,0.4)' : '';
+}
+
+function onProjectsPageChange(newOffset) {
+  state.projectsFilter.offset = newOffset;
+  fetchAndRenderProjects();
+  window.scrollTo({ top: 280, behavior: 'smooth' });
 }
 
 // ════════════════════════════════════════════════════════
@@ -1022,10 +1265,10 @@ async function loadAnswersView() {
 }
 
 // ════════════════════════════════════════════════════════
-//  PAGINATION
+//  PAGINATION  (generic — works for any container ID)
 // ════════════════════════════════════════════════════════
-function renderPagination(total, offset, limit, callbackName) {
-  const container = document.getElementById('pagination-container');
+function renderPaginationIn(containerId, total, offset, limit, callbackName) {
+  const container = document.getElementById(containerId);
   if (!container) return;
 
   const totalPages  = Math.ceil(total / limit);
@@ -1033,7 +1276,6 @@ function renderPagination(total, offset, limit, callbackName) {
 
   if (totalPages <= 1) { container.innerHTML = ''; return; }
 
-  // Show page numbers around current
   const pages = [];
   for (let p = Math.max(1, currentPage-2); p <= Math.min(totalPages, currentPage+2); p++) pages.push(p);
 
@@ -1046,6 +1288,11 @@ function renderPagination(total, offset, limit, callbackName) {
     <button class="page-btn" ${currentPage===totalPages?'disabled':''} onclick="${callbackName}(${currentPage*limit})">›</button>
     <button class="page-btn" ${currentPage===totalPages?'disabled':''} onclick="${callbackName}(${(totalPages-1)*limit})">»</button>
     <span style="color:var(--text-muted);font-size:0.82rem;align-self:center;">Page ${currentPage} / ${totalPages} &nbsp;·&nbsp; ${total.toLocaleString()} results</span>`;
+}
+
+// Backwards-compat alias for Listings view (uses fixed #pagination-container)
+function renderPagination(total, offset, limit, callbackName) {
+  renderPaginationIn('pagination-container', total, offset, limit, callbackName);
 }
 
 // ════════════════════════════════════════════════════════
