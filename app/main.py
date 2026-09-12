@@ -22,12 +22,8 @@ app.add_middleware(
 )
 
 # Static and Templates
-os.makedirs("app/static/css", exist_ok=True)
-os.makedirs("app/static/js", exist_ok=True)
-os.makedirs("app/templates", exist_ok=True)
-
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
-templates = Jinja2Templates(directory="app/templates")
+app.mount("/static", StaticFiles(directory="frontend"), name="static")
+templates = Jinja2Templates(directory="frontend")
 
 # Include API Router
 app.include_router(api_router, prefix="/api")

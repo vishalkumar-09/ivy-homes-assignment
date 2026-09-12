@@ -21,10 +21,19 @@ The project encompasses:
 
 ---
 
-## 2. Tech Stack
+## 2. Tech Stack & Frontend Architecture
 
 - **Backend / API**: Python 3.14, **FastAPI**, Uvicorn, HTTPX, Pydantic, Jinja2
-- **Frontend**: Modern Vanilla JavaScript (SPA hash-routing, JWT session persistence, automatic token refresh interceptor), HTML5, Custom CSS3 Design System (Glassmorphism, responsive CSS grid, typography with *Plus Jakarta Sans* and *Inter*)
+- **Frontend Architecture**: Clean, modular Single-Page Application (SPA) separated into dedicated modules under the `/frontend` directory:
+  - `frontend/index.html`: Main SPA shell and semantic layout
+  - `frontend/css/styles.css`: Complete design system (Glassmorphism, dark/light themes, CSS variables)
+  - `frontend/js/state.js`: Central application state, reactive stores, formatting utilities
+  - `frontend/js/api.js`: Resilient API fetcher with automatic 401 token refresh interceptor
+  - `frontend/js/auth.js`: Session persistence, demo account credentials switcher, login modal
+  - `frontend/js/router.js`: SPA hash-based client router and view dispatcher
+  - `frontend/js/components/`: Modular UI components (`theme.js`, `pagination.js`, `cards.js`)
+  - `frontend/js/views/`: Dedicated view controllers (`listings.js`, `listing-detail.js`, `rentals.js`, `projects.js`, `saved.js`, `insights.js`, `findings.js`, `answers.js`)
+  - `frontend/js/app.js`: Application bootstrapping and event orchestration
 - **Data Investigation**: Python (Requests, Dateutil, NumPy, Collections)
 
 ---
