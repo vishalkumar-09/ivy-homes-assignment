@@ -1340,6 +1340,29 @@ async function submitLogin(e) {
 }
 
 // ════════════════════════════════════════════════════════
+//  THEME MANAGEMENT (Starts with Light Theme by default)
+// ════════════════════════════════════════════════════════
+function initTheme() {
+  const current = localStorage.getItem('ivy_theme') || 'light';
+  setTheme(current);
+}
+
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('ivy_theme', theme);
+  const icon = document.getElementById('theme-icon');
+  if (icon) {
+    icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+  }
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = current === 'light' ? 'dark' : 'light';
+  setTheme(next);
+}
+
+// ════════════════════════════════════════════════════════
 //  NAVBAR SCROLL EFFECT
 // ════════════════════════════════════════════════════════
 function onScroll() {
@@ -1351,6 +1374,7 @@ function onScroll() {
 //  INITIALISATION
 // ════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
+  initTheme();
   updateAuthUI();
   fetchSavedIds();
   window.addEventListener('hashchange', handleHashChange);

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -34,7 +34,12 @@
         <a class="nav-item"        data-route="answers"   href="#answers">📝 10 Questions</a>
       </nav>
 
-      <div id="nav-auth-container" class="nav-auth"></div>
+      <div class="nav-actions" style="display:flex;align-items:center;gap:10px;">
+        <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme (Light / Dark)" aria-label="Toggle theme">
+          <span id="theme-icon">🌙</span>
+        </button>
+        <div id="nav-auth-container" class="nav-auth"></div>
+      </div>
     </header>
 
     <!-- ── Main Content ── -->
@@ -75,7 +80,7 @@
         </p>
 
         <!-- Demo Account Switcher -->
-        <div style="padding:14px;border-radius:var(--r-sm);background:rgba(255,255,255,0.03);border:1px solid var(--border-color);">
+        <div style="padding:14px;border-radius:var(--r-sm);background:var(--bg-secondary);border:1px solid var(--border-color);">
           <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px;">⚡ Quick Demo Access</div>
           <div style="display:flex;gap:8px;">
             <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="fillDemo('demo1@ivy.homes')">demo1</button>
