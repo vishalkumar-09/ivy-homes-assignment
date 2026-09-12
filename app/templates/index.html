@@ -3,88 +3,98 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ivy Homes — Real Estate Intelligence & Property Portal (Bangalore)</title>
+  <title>Ivy Homes — Real Estate Intelligence · Bangalore</title>
+  <meta name="description" content="Ivy Homes Property Portal — verified listings, rentals, builder projects and market insights for Bangalore real estate.">
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800;900&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body>
   <div class="app-layout">
-    <!-- Navbar -->
-    <header class="navbar">
-      <div style="display:flex; align-items:center; gap:24px;">
-        <a href="#listings" class="brand-logo">
-          <span style="color:var(--accent);">🌿 Ivy</span>Homes
-          <span class="brand-badge">{{ city }}</span>
-        </a>
-        <nav class="nav-links">
-          <a href="#listings" class="nav-item active" data-route="listings">🏠 Properties</a>
-          <a href="#rentals" class="nav-item" data-route="rentals">🔑 Rentals</a>
-          <a href="#projects" class="nav-item" data-route="projects">🏗️ Projects</a>
-          <a href="#saved" class="nav-item" data-route="saved">❤️ Saved</a>
-          <a href="#insights" class="nav-item" data-route="insights">📊 Market Insights</a>
-          <a href="#findings" class="nav-item" data-route="findings">🔍 API Findings</a>
-          <a href="#answers" class="nav-item" data-route="answers">📝 10 Questions</a>
-        </nav>
-      </div>
 
-      <div id="nav-auth-container" class="nav-auth">
-        <!-- Injected by JavaScript -->
-      </div>
+    <!-- ── Navbar ── -->
+    <header class="navbar">
+      <a href="#listings" class="brand-logo" data-route="listings" onclick="navigate('listings')">
+        <div class="brand-icon">🌿</div>
+        <span>Ivy<span style="color:var(--text-secondary);font-weight:600;">Homes</span></span>
+        <span class="brand-badge">{{ city }}</span>
+      </a>
+
+      <nav class="nav-links">
+        <a class="nav-item active" data-route="listings"  href="#listings">🏠 Properties</a>
+        <a class="nav-item"        data-route="rentals"   href="#rentals">🔑 Rentals</a>
+        <a class="nav-item"        data-route="projects"  href="#projects">🏗️ Projects</a>
+        <a class="nav-item"        data-route="saved"     href="#saved">❤️ Saved</a>
+        <a class="nav-item"        data-route="insights"  href="#insights">📊 Insights</a>
+        <a class="nav-item"        data-route="findings"  href="#findings">🔍 API Findings</a>
+        <a class="nav-item"        data-route="answers"   href="#answers">📝 10 Questions</a>
+      </nav>
+
+      <div id="nav-auth-container" class="nav-auth"></div>
     </header>
 
-    <!-- Main Content Container -->
+    <!-- ── Main Content ── -->
     <main id="view-container" class="main-content">
-      <!-- Injected by SPA Router -->
+      <!-- Populated by SPA router -->
     </main>
 
-    <!-- Footer -->
+    <!-- ── Footer ── -->
     <footer class="footer">
-      <div style="max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+      <div class="footer-inner">
         <div>
-          <strong>Ivy Homes Property Portal</strong> · Scoped to <strong>{{ city }}</strong> (Assigned Locality: <strong>{{ assigned_locality }}</strong>)
+          <strong style="color:var(--text-primary);">🌿 Ivy Homes Property Portal</strong>
+          &nbsp;·&nbsp; Scoped to <strong>{{ city }}</strong>
+          &nbsp;·&nbsp; Locality: <strong>{{ assigned_locality }}</strong>
         </div>
         <div style="color:var(--text-muted);">
-          Engineered by <strong>Vishal Kumar Gaud</strong> · Software Engineering Internship Assignment
+          Built by <strong style="color:var(--text-secondary);">Vishal Kumar Gaud</strong>
+          &nbsp;·&nbsp; Software Engineering Internship · Sep 2026
         </div>
       </div>
     </footer>
   </div>
 
-  <!-- Login Modal -->
-  <div id="login-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this) closeLoginModal()">
-    <div class="modal-container" style="max-width:440px;">
+  <!-- ── Login Modal ── -->
+  <div id="login-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeLoginModal()">
+    <div class="modal-container">
       <div class="modal-header">
-        <h3 style="font-family:var(--font-display); font-size:1.3rem;">Sign in to Ivy Homes</h3>
-        <button onclick="closeLoginModal()" style="font-size:1.4rem; color:var(--text-muted);">&times;</button>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="brand-icon" style="width:30px;height:30px;font-size:0.9rem;">🌿</div>
+          <h3 style="font-family:var(--font-display);font-size:1.2rem;font-weight:800;">Sign in to Ivy Homes</h3>
+        </div>
+        <button onclick="closeLoginModal()" style="font-size:1.4rem;color:var(--text-muted);line-height:1;padding:4px;">×</button>
       </div>
+
       <div class="modal-body">
-        <p style="color:var(--text-secondary); font-size:0.9rem;">
-          Connect to your account with 24-hour persistent session and saved favourites synchronization.
+        <p style="color:var(--text-secondary);font-size:0.88rem;line-height:1.6;">
+          Session persists via auto-refresh tokens. Your saved properties sync instantly across all devices.
         </p>
 
-        <!-- Demo Accounts Quick Switcher -->
-        <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
-          <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; display:block; margin-bottom:8px;">Quick Demo Accounts</span>
-          <div style="display:flex; gap:8px;">
+        <!-- Demo Account Switcher -->
+        <div style="padding:14px;border-radius:var(--r-sm);background:rgba(255,255,255,0.03);border:1px solid var(--border-color);">
+          <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px;">⚡ Quick Demo Access</div>
+          <div style="display:flex;gap:8px;">
             <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="fillDemo('demo1@ivy.homes')">demo1</button>
             <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="fillDemo('demo2@ivy.homes')">demo2</button>
             <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="fillDemo('demo3@ivy.homes')">demo3</button>
           </div>
         </div>
 
-        <form onsubmit="submitLogin(event)" style="display:flex; flex-direction:column; gap:14px;">
+        <form onsubmit="submitLogin(event)" style="display:flex;flex-direction:column;gap:14px;">
           <div>
-            <label style="font-size:0.8rem; color:var(--text-secondary); display:block; margin-bottom:4px;">Email</label>
-            <input id="login-email" type="email" value="demo1@ivy.homes" required style="width:100%;">
+            <label class="filter-label" style="display:block;margin-bottom:6px;">Email Address</label>
+            <input id="login-email" type="email" value="demo1@ivy.homes" required placeholder="demo1@ivy.homes">
           </div>
           <div>
-            <label style="font-size:0.8rem; color:var(--text-secondary); display:block; margin-bottom:4px;">Password</label>
-            <input id="login-password" type="password" value="5edd65b804" required style="width:100%;">
+            <label class="filter-label" style="display:block;margin-bottom:6px;">Password</label>
+            <input id="login-password" type="password" value="5edd65b804" required placeholder="••••••••••">
           </div>
-          <div id="login-error" style="color:var(--danger); font-size:0.85rem;"></div>
-          <button type="submit" class="btn btn-primary" style="width:100%; margin-top:8px;">Log In</button>
+          <div id="login-error" style="color:var(--danger);font-size:0.85rem;min-height:18px;"></div>
+          <button type="submit" class="btn btn-primary" style="width:100%;margin-top:4px;">Sign In →</button>
         </form>
       </div>
     </div>
