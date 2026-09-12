@@ -1340,16 +1340,14 @@ async function submitLogin(e) {
 }
 
 // ════════════════════════════════════════════════════════
-//  THEME MANAGEMENT (Starts with Light Theme by default)
+//  THEME MANAGEMENT (Always Starts in Dark Mode)
 // ════════════════════════════════════════════════════════
 function initTheme() {
-  const current = localStorage.getItem('ivy_theme') || 'light';
-  setTheme(current);
+  setTheme('dark');
 }
 
 function setTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('ivy_theme', theme);
   const icon = document.getElementById('theme-icon');
   if (icon) {
     icon.textContent = theme === 'dark' ? '☀️' : '🌙';
@@ -1357,8 +1355,8 @@ function setTheme(theme) {
 }
 
 function toggleTheme() {
-  const current = document.documentElement.getAttribute('data-theme') || 'light';
-  const next = current === 'light' ? 'dark' : 'light';
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = current === 'dark' ? 'light' : 'dark';
   setTheme(next);
 }
 
