@@ -1,0 +1,48 @@
+# Environment and Secrets
+.env
+.env*.local
+.env.development
+.env.test
+.env.production
+
+# Node Dependencies & Build
+node_modules/
+/.pnp
+.pnp.js
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Next.js build output
+.next/
+out/
+build/
+dist/
+
+# Python Cache & venv
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing & Coverage
+coverage/
+.nyc_output/
+*.lcov
+.turbo
+
+# IDE and OS
+.DS_Store
+*.pem
+Thumbs.db
+.vscode/
+.idea/
