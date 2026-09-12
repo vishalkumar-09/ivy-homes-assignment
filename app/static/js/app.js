@@ -1,5 +1,26 @@
 // Ivy Homes Frontend Application Logic
 
+function formatListingClient(l) {
+  if (!l) return {};
+  const c = l.carpet_area || 0;
+  const pt = l.property_type || '';
+  let is_sqm = l.is_unit_sqm || false;
+  let c_sqft = l.carpet_area_sqft || c;
+  if (pt !== 'plot' && l.website === 'magichomes' && c < 300) {
+    is_sqm = true;
+    c_sqft = Math.round(c * 10.7639104 * 10) / 10;
+  }
+  const price = l.price || 0;
+  const ppsq = l.price_per_sqft || ((c_sqft && price > 0) ? Math.round(price / c_sqft) : 0);
+  return {
+    ...l,
+    carpet_area_sqft: c_sqft,
+    is_unit_sqm: is_sqm,
+    price_per_sqft: ppsq,
+    price_formatted: l.price_formatted || `₹${price.toLocaleString()}`
+  };
+}
+
 const state = {
   user: JSON.parse(localStorage.getItem('ivy_user')) || null,
   accessToken: localStorage.getItem('ivy_access_token') || null,
@@ -151,7 +172,10 @@ async function fetchSavedIds() {
 }
 
 async function toggleSave(listingId, event) {
-  if (event) event.stopPropagation();
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
   if (!state.user) {
     openLoginModal();
     return;
@@ -174,6 +198,13 @@ async function toggleSave(listingId, event) {
       }
     }
     renderFavouriteButtons();
+
+    const detailBtn = document.getElementById('detail-save-btn');
+    if (detailBtn) {
+      const nowSaved = state.savedListingIds.has(listingId);
+      detailBtn.innerHTML = nowSaved ? '❤️ Saved to Favourites' : '🤍 Save to Favourites';
+    }
+
     if (state.currentRoute === 'saved') {
       loadSavedView();
     }
@@ -361,9 +392,12 @@ async function fetchAndRenderListings() {
   }
 }
 
-function createListingCard(l) {
+function createListingCard(rawL) {
+  const l = formatListingClient(rawL);
   const isSqM = l.is_unit_sqm;
   const areaDisplay = isSqM ? `${l.carpet_area_sqft} sqft (${l.carpet_area} m²)` : `${l.carpet_area} sqft`;
+  const priceDisplay = l.price_formatted || `₹${(l.price || 0).toLocaleString()}`;
+  const ppsqDisplay = l.price_per_sqft ? `₹${l.price_per_sqft.toLocaleString()}/sqft` : '';
 
   return `
     <div class="glass-card property-card" onclick="navigate('listing-detail', '${l.listing_id}')">
@@ -374,12 +408,12 @@ function createListingCard(l) {
           <span class="badge badge-source">${l.website || 'Portal'}</span>
           ${isSqM ? `<span class="badge badge-sqm" title="Converted from Sq Meters to Sq Feet">📐 SqM Converted</span>` : ''}
         </div>
-        <button class="favourite-btn" data-id="${l.listing_id}" onclick="toggleSave('${l.listing_id}', event)">🤍</button>
+        <button class="favourite-btn ${state.savedListingIds.has(l.listing_id) ? 'saved' : ''}" data-id="${l.listing_id}" onclick="toggleSave('${l.listing_id}', event)">${state.savedListingIds.has(l.listing_id) ? '❤️' : '🤍'}</button>
       </div>
       <div class="card-body">
         <div class="card-price">
-          ${l.price_formatted}
-          <span class="card-price-per-sqft">₹${l.price_per_sqft.toLocaleString()}/sqft</span>
+          ${priceDisplay}
+          ${ppsqDisplay ? `<span class="card-price-per-sqft">${ppsqDisplay}</span>` : ''}
         </div>
         <h3 class="card-title">${l.apartment_name || 'Premium Property'}</h3>
         <div class="card-location">📍 ${l.locality ? l.locality.toUpperCase() : 'Bangalore'}</div>
@@ -454,7 +488,7 @@ async function loadListingDetailView(listingId) {
           <div style="text-align:right;">
             <div style="font-size:2rem; font-weight:800; color:var(--accent); font-family:var(--font-display);">${l.price_formatted}</div>
             <div style="color:var(--text-muted); font-size:0.9rem;">₹${l.price_per_sqft.toLocaleString()} / sqft</div>
-            <button class="btn btn-primary" style="margin-top:12px;" onclick="toggleSave('${l.listing_id}')">
+            <button id="detail-save-btn" class="btn btn-primary" style="margin-top:12px;" onclick="toggleSave('${l.listing_id}', event)">
               ${state.savedListingIds.has(l.listing_id) ? '❤️ Saved to Favourites' : '🤍 Save to Favourites'}
             </button>
           </div>
@@ -640,7 +674,7 @@ async function loadSavedView() {
       return;
     }
 
-    grid.innerHTML = data.results.map(l => createListingCard(formatListing(l))).join('');
+    grid.innerHTML = data.results.map(l => createListingCard(formatListingClient(l))).join('');
     renderFavouriteButtons();
   } catch (e) {
     console.error('Saved fetch error:', e);
@@ -937,6 +971,7 @@ async function submitLogin(e) {
 
     const data = await res.json();
     setSession(data);
+    await fetchSavedIds();
     closeLoginModal();
     renderView();
   } catch (err) {
