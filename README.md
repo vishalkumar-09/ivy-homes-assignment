@@ -58,7 +58,7 @@ npm install
 The application reads configuration from `web/.env.local`:
 ```env
 IVY_BASE_URL=https://solve.ivy.homes
-IVY_API_KEY=IVY26-9A0B5D37765D
+IVY_API_KEY=IV*26-9*****37765D
 IVY_CITY=Bangalore
 IVY_ASSIGNED_LOCALITY=Yelahanka
 IVY_DEMO_PASSWORD=5edd65b804
