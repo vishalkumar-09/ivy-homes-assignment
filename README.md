@@ -16,7 +16,7 @@ This repository contains the end-to-end implementation of the **Ivy Homes Softwa
 The project encompasses:
 1. **API Investigation & Lie Detection**: A comprehensive audit identifying 15 reproducible discrepancies between `API_REFERENCE.md` and the live running API (`https://solve.ivy.homes`).
 2. **Data Analysis & 10 Solutions**: Reproducible Python scripts solving all 10 assignment questions with rigorous mathematical and domain validation.
-3. **Full-Stack Web Application**: A modern, high-performance web platform built with **FastAPI** and a responsive single-page architecture (SPA), implementing real authentication, resilient client/server filtering, listing detail pages with similar properties, per-user saved favourites, rentals and projects directories, and an interactive market insights dashboard.
+3. **Full-Stack Web Application**: A modern, high-performance web platform built with **Next.js 16 (App Router)** and React 19, implementing real authentication with automatic token refresh, resilient client/server filtering, listing detail pages with similar properties, per-user saved favourites, rentals and projects directories, and an interactive market insights dashboard.
 4. **Submission Artifact**: Validated `submission.json` populated with candidate metadata, exact answers, and categorized findings with concrete evidence.
 
 ---
@@ -81,6 +81,18 @@ cd web
 npm run build
 npm start
 ```
+
+### Deployment (Vercel)
+This Next.js application is designed for seamless deployment on [Vercel](https://vercel.com):
+1. Import repository `vishalkumar-09/ivy-homes-assignment` into Vercel.
+2. Set **Root Directory** to `web`.
+3. Configure Environment Variables in the Vercel project settings:
+   - `IVY_BASE_URL`: `https://solve.ivy.homes`
+   - `IVY_API_KEY`: `IVY26-9A0B5D37765D`
+   - `IVY_CITY`: `Bangalore`
+   - `IVY_ASSIGNED_LOCALITY`: `Yelahanka`
+   - `IVY_DEMO_PASSWORD`: `5edd65b804`
+4. Deploy. Vercel auto-detects Next.js and builds the serverless API route handlers and static assets.
 
 ---
 
