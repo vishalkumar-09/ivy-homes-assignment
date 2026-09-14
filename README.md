@@ -88,7 +88,7 @@ This Next.js application is designed for seamless deployment on [Vercel](https:/
 2. Set **Root Directory** to `web`.
 3. Configure Environment Variables in the Vercel project settings:
    - `IVY_BASE_URL`: `https://solve.ivy.homes`
-   - `IVY_API_KEY`: `IVY26-9A0B5D37765D`
+   - `IVY_API_KEY`: `IV*26-9*****37765D`
    - `IVY_CITY`: `Bangalore`
    - `IVY_ASSIGNED_LOCALITY`: `Yelahanka`
    - `IVY_DEMO_PASSWORD`: `5edd65b804`
