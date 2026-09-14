@@ -23,25 +23,24 @@ The project encompasses:
 
 ## 2. Tech Stack & Frontend Architecture
 
-- **Backend / API**: Python 3.14, **FastAPI**, Uvicorn, HTTPX, Pydantic, Jinja2
-- **Frontend Architecture**: Clean, modular Single-Page Application (SPA) separated into dedicated modules under the `/frontend` directory:
-  - `frontend/index.html`: Main SPA shell and semantic layout
-  - `frontend/css/styles.css`: Complete design system (Glassmorphism, dark/light themes, CSS variables)
-  - `frontend/js/state.js`: Central application state, reactive stores, formatting utilities
-  - `frontend/js/api.js`: Resilient API fetcher with automatic 401 token refresh interceptor
-  - `frontend/js/auth.js`: Session persistence, demo account credentials switcher, login modal
-  - `frontend/js/router.js`: SPA hash-based client router and view dispatcher
-  - `frontend/js/components/`: Modular UI components (`theme.js`, `pagination.js`, `cards.js`)
-  - `frontend/js/views/`: Dedicated view controllers (`listings.js`, `listing-detail.js`, `rentals.js`, `projects.js`, `saved.js`, `insights.js`, `findings.js`, `answers.js`)
-  - `frontend/js/app.js`: Application bootstrapping and event orchestration
-- **Data Investigation**: Python (Requests, Dateutil, NumPy, Collections)
+- **Web Framework**: **Next.js 16 (App Router)** with React 19 and Turbopack
+- **Backend / API**: Built-in Next.js Node.js Route Handlers (`web/src/app/api/`), completely self-contained with no external server dependency
+- **Architecture**:
+  - `web/src/app/`: Page routes (`/`, `/listings/[id]`, `/rentals`, `/projects`, `/saved`, `/insights`, `/findings`, `/answers`)
+  - `web/src/app/api/`: Native API route handlers proxying remote auth and saved items, while serving sanitized, unit-corrected, and properly sorted datasets
+  - `web/src/components/`: Modular React components (`Navbar`, `Footer`, `Cards`, `LoginModal`, `Pagination`)
+  - `web/src/contexts/`: React context stores (`AuthContext`, `SavedContext`, `ThemeContext`)
+  - `web/src/lib/`: Server-side Ivy client & data layer (`ivyClient.js`), client-side fetcher with automatic 401 token refresh (`apiFetch.js`), and constants
+  - `web/src/data/`: Curated local dataset snapshots (`listings.json`, `rentals.json`, `projects.json`) for instant boot
+- **Styling**: Pure modern CSS design system with glassmorphism, responsive grids, micro-animations, and dark/light mode
+- **Data Investigation**: Python (Requests, Dateutil, NumPy) for reference moment analysis and question derivations
 
 ---
 
 ## 3. Setup Instructions
 
 ### Prerequisites
-- Python 3.10+
+- Node.js 18+ (Node 20+ recommended)
 - Git
 
 ### Installation
@@ -50,19 +49,13 @@ The project encompasses:
 git clone https://github.com/vishalkumar-09/ivy-homes-assignment.git
 cd ivy-homes-assignment
 
-# 2. Create virtual environment
-python -m venv venv
-# On Windows:
-venv\Scripts\activate
-# On Linux/macOS:
-source venv/bin/activate
-
-# 3. Install dependencies
-pip install -r requirements.txt
+# 2. Enter web directory and install dependencies
+cd web
+npm install
 ```
 
 ### Environment Configuration
-Copy `.env.example` to `.env` and configure your credentials:
+The application reads configuration from `web/.env.local`:
 ```env
 IVY_BASE_URL=https://solve.ivy.homes
 IVY_API_KEY=IVY26-9A0B5D37765D
@@ -70,28 +63,23 @@ IVY_CITY=Bangalore
 IVY_ASSIGNED_LOCALITY=Yelahanka
 IVY_DEMO_PASSWORD=5edd65b804
 ```
-*(Note: `.env` is included in `.gitignore` and must never be committed).*
 
 ---
 
 ## 4. Running Locally
 
-### Start Web Application
+### Start Next.js Application
 ```bash
-uvicorn app.main:app --reload --port 8000
+cd web
+npm run dev
 ```
-Open [http://localhost:8000](http://localhost:8000) in your browser.
+Open **[http://localhost:3000](http://localhost:3000)** in your browser.
 
-### Run Investigation & Question Solver
+### Build for Production
 ```bash
-# Fetch fresh datasets
-python investigation/fetch_all.py
-
-# Run complete data analysis & solve all 10 questions
-python investigation/solve_all_questions.py
-
-# Verify documentation findings schema
-python investigation/generate_findings.py
+cd web
+npm run build
+npm start
 ```
 
 ---
@@ -100,22 +88,23 @@ python investigation/generate_findings.py
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                 Modern SPA Client (Browser)                 │
+│                 Next.js 16 App Router (Browser)             │
 │  - Property Grid & Resilient Filters (Client-side fallback) │
 │  - Listing Detail View & Comparable Recommendations         │
 │  - Saved Favourites Sync & Demo Account Switcher            │
 │  - Interactive Market Insights & Findings Explorer          │
 └──────────────────────────────┬──────────────────────────────┘
-                               │ JSON over HTTP
+                               │ Fetch / JSON
 ┌──────────────────────────────▼──────────────────────────────┐
-│                    FastAPI Web Application                   │
+│                  Next.js API Route Handlers                  │
 │  - /api/auth (Login, Token Refresh, Session Management)     │
 │  - /api/listings (Sanitized, unit-normalized, sorted)       │
 │  - /api/rentals & /api/projects (Crores to INR conversion)   │
-│  - /api/saved (Per-user persistent favourites)              │
-│  - /api/insights (Aggregated market metrics & distributions)│
+│  - /api/saved (Per-user persistent favourites proxy)        │
+│  - /api/insights/summary (Aggregated market metrics)        │
+│  - /api/submission (Static JSON export)                     │
 └──────────────────────────────┬──────────────────────────────┘
-                               │ Async HTTP with X-API-Key
+                               │ Async HTTP with X-API-Key + Bearer
 ┌──────────────────────────────▼──────────────────────────────┐
 │                   Ivy Homes Remote API                      │
 │                https://solve.ivy.homes                      │
